@@ -1,0 +1,20 @@
+[package]
+name = "yanker"
+version = "0.1.0"
+authors = ["MoAlyousef <mohammed.alyousef@neurosrg.com>"]
+edition = "2018"
+description = "A Rust crate to automate crate-yanking"
+repository = "https://github.com/MoAlyousef/yanker"
+keywords = ["cli", "crates", "yank"]
+categories = ["development-tools"]
+readme = "README.md"
+license = "MIT"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+reqwest = { version = "0.11", features = ["json"] }
+tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
+regex = "1.4"
+semver = "0.11"
+lazy_static = "1.4"
+toml = "0.5"
