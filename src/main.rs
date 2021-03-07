@@ -16,22 +16,9 @@
 //! Should yank all versions between 0.1.1 (included) to 0.2.5 (excluded).
 //!
 
-#[macro_use]
-extern crate lazy_static;
-extern crate regex;
-extern crate semver;
-extern crate serde;
-extern crate tokio;
-extern crate toml;
-
-use std::env;
-use std::error;
-use std::fs;
-use tokio::process;
-
 static APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), " ", env!("CARGO_PKG_VERSION"),);
 
-lazy_static! {
+lazy_static::lazy_static! {
     static ref RE: regex::Regex = regex::Regex::new(r"\[(.*), *(.*)\]").unwrap();
 }
 
@@ -72,8 +59,8 @@ OPTIONS:
 "#;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn error::Error>> {
-    let mut args: Vec<String> = env::args().collect();
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let mut args: Vec<String> = std::env::args().collect();
     if args.len() < 2 {
         println!("{}", HELP);
         return Ok(());
@@ -104,7 +91,7 @@ async fn main() -> Result<(), Box<dyn error::Error>> {
         }
     };
 
-    let local_toml = fs::read_to_string("Cargo.toml")?;
+    let local_toml = std::fs::read_to_string("Cargo.toml")?;
     let local_crate: Config = toml::from_str(&local_toml)?;
 
     let client = reqwest::Client::builder()
@@ -135,7 +122,7 @@ async fn main() -> Result<(), Box<dyn error::Error>> {
         .collect();
 
     for elem in v {
-        process::Command::new("cargo")
+        tokio::process::Command::new("cargo")
             .args(&["yank", "--vers", &elem])
             .spawn()?
             .wait()
