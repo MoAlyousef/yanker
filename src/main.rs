@@ -27,7 +27,7 @@ extern crate toml;
 use std::env;
 use std::error;
 use std::fs;
-use std::process;
+use tokio::process;
 
 static APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), " ", env!("CARGO_PKG_VERSION"),);
 
@@ -137,7 +137,9 @@ async fn main() -> Result<(), Box<dyn error::Error>> {
     for elem in v {
         process::Command::new("cargo")
             .args(&["yank", "--vers", &elem])
-            .spawn()?;
+            .spawn()?
+            .wait()
+            .await?;
     }
     Ok(())
 }
