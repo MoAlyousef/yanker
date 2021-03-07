@@ -16,7 +16,7 @@
 //! Should yank all versions between 0.1.1 (included) to 0.2.5 (excluded).
 //!
 
-static APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), " ", env!("CARGO_PKG_VERSION"),);
+const APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), " ", env!("CARGO_PKG_VERSION"));
 
 lazy_static::lazy_static! {
     static ref RE: regex::Regex = regex::Regex::new(r"\[(.*), *(.*)\]").unwrap();
