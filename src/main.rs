@@ -29,7 +29,7 @@ use std::error;
 use std::fs;
 use std::process;
 
-static APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
+static APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), " ", env!("CARGO_PKG_VERSION"),);
 
 lazy_static! {
     static ref RE: regex::Regex = regex::Regex::new(r"\[(.*), *(.*)\]").unwrap();
@@ -59,20 +59,43 @@ struct Versions {
     versions: Vec<Version>,
 }
 
+const HELP: &str = r#"
+Yank a range of crate versions
+
+USAGE:
+    yanker "[0.1.0, 0.2.0]"
+    yanker [OPTIONS]
+
+OPTIONS:
+    --version                Prints yanker's version
+    --help                   Prints help information
+"#;
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn error::Error>> {
-    let args: Vec<String> = env::args().collect();
-    if args.len() < 2 || args[1] == "--help" {
-        println!("Usage: yanker \"[0.1.0, 0.2.0]\"");
+    let mut args: Vec<String> = env::args().collect();
+    if args.len() < 2 {
+        println!("{}", HELP);
         return Ok(());
     }
 
-    let local_toml = fs::read_to_string("Cargo.toml")?;
-    let local_crate: Config = toml::from_str(&local_toml)?;
+    let main_arg = args.pop().ok_or("")?;
+
+    match main_arg.as_str() {
+        "--help" | "-h" => {
+            println!("{}", HELP);
+            return Ok(());
+        }
+        "--version" | "-v" => {
+            println!("{}", APP_USER_AGENT);
+            return Ok(());
+        }
+        _ => (),
+    }
 
     let (from, to) = {
-        if RE.is_match(&args[1]) {
-            let caps = RE.captures(&args[1]).ok_or("")?;
+        if RE.is_match(&main_arg) {
+            let caps = RE.captures(&main_arg).ok_or("")?;
             let from = semver::Version::parse(caps.get(1).ok_or("")?.as_str())?;
             let to = semver::Version::parse(caps.get(2).ok_or("")?.as_str())?;
             (from, to)
@@ -80,6 +103,9 @@ async fn main() -> Result<(), Box<dyn error::Error>> {
             (semver::Version::new(0, 0, 0), semver::Version::new(0, 0, 0))
         }
     };
+
+    let local_toml = fs::read_to_string("Cargo.toml")?;
+    let local_crate: Config = toml::from_str(&local_toml)?;
 
     let client = reqwest::Client::builder()
         .user_agent(APP_USER_AGENT)
